@@ -79,6 +79,26 @@ PatentMate 是一个基于 **Tauri 2** 的桌面应用，用于承载 **PatentSc
 yarn install
 ````
 
+### 可选：通过配置文件启用实时分析
+
+如果你希望桌面端从当前 mock 会话自动切换到真实模型链路，首次启动桌面端时会自动在应用配置目录生成 `model-provider.json` 模板。当前支持的配置项包括：
+
+````json
+{
+	"PROVIDER": "qwen",
+	"API_URL": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+	"MODEL_NAME": "qwen-plus",
+	"API_KEY": "你的百炼 API Key"
+}
+````
+
+- `PROVIDER`：当前支持 `qwen`，也兼容 `dashscope` / `aliyun-dashscope` 别名
+- `API_URL`：模型聊天接口地址
+- `MODEL_NAME`：要调用的模型名
+- `API_KEY`：供应商 API Key，留空时桌面端会自动回退到本地 mock 会话
+
+当配置文件存在且 `API_KEY` 非空时，Tauri 桌面端会自动切换到实时分析；否则继续使用本地 mock，会在会话顶部提示配置文件路径。
+
 ### 2. 启动前端开发环境
 
 ````bash
