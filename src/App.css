@@ -1,30 +1,27 @@
 :root {
-  font-family: "Aptos", "Segoe UI", sans-serif;
-  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
   line-height: 1.5;
   font-weight: 400;
 
-  color: #0f1b2d;
-  background:
-    radial-gradient(circle at top left, rgba(146, 181, 224, 0.32), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(246, 188, 96, 0.24), transparent 28%),
-    linear-gradient(160deg, #f7f1e6 0%, #f3eee4 52%, #eef3f7 100%);
+  color: #1f2937;
+  background-color: #f9fafb;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 #root {
-  min-height: 100vh;
+  height: 100vh;
 }
 
 button,
@@ -39,18 +36,15 @@ button {
 
 .appShell {
   position: relative;
-  min-height: 100vh;
-  padding: 28px;
+  height: 100vh;
+  padding: 16px 24px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .appBackdrop {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(135deg, rgba(18, 38, 68, 0.08), transparent 30%),
-    radial-gradient(circle at 20% 20%, rgba(250, 213, 138, 0.25), transparent 24%);
-  pointer-events: none;
+  display: none; /* Removed playful gradient backdrop */
 }
 
 .appHeader,
@@ -61,71 +55,85 @@ button {
 
 .appHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
-.eyebrow,
-.panelEyebrow {
-  margin: 0 0 10px;
+.eyebrow {
+  margin: 0 0 4px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.72rem;
-  color: #8c5d19;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.panelEyebrow {
+  display: none;
 }
 
 .appHeader h1,
 .panelHeader h2 {
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
 .appHeader h1 {
-  font-size: clamp(2rem, 4vw, 3.6rem);
-  max-width: 12ch;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
 }
 
 .headerSummary {
-  max-width: 52rem;
-  margin: 14px 0 0;
-  color: #41526a;
+  display: none; /* Hide summary to save vertical space for professional view */
 }
 
 .workspaceGrid {
   display: grid;
-  grid-template-columns: minmax(340px, 0.92fr) minmax(420px, 1.08fr);
-  gap: 22px;
-  min-height: calc(100vh - 156px);
+  grid-template-columns: 420px minmax(0, 1fr);
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  border-radius: 26px;
-  background: rgba(252, 249, 244, 0.8);
-  box-shadow: 0 24px 60px rgba(20, 34, 53, 0.12);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
 }
 
 .panelHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 24px 24px 18px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+  background-color: #ffffff;
+}
+
+.panelHeader h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
 }
 
 .panelHeader-preview {
-  padding-bottom: 12px;
+  padding-bottom: 16px;
 }
 
 .panelStatus {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -138,135 +146,153 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: #e8eef5;
-  color: #1e3552;
-  font-size: 0.88rem;
-  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
-.timelineWrap,
+.timelineWrap {
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #f9fafb;
+}
+
 .previewWrap {
   flex: 1;
   min-height: 0;
-  padding: 0 24px 24px;
-  overflow: auto;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #ffffff;
 }
 
 .supportGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
-  gap: 16px;
-  padding: 0 24px 18px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  background-color: #ffffff;
+  flex-shrink: 0;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .supportCard {
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(15, 27, 45, 0.08);
+  padding: 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
 }
 
 .supportCardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .supportCardHeader h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
 }
 
 .supportCardDescription {
-  margin: 0 0 14px;
-  color: #41526a;
-  font-size: 0.92rem;
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 0.85rem;
 }
 
 .supportCardActions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .sourceDraftInput {
   width: 100%;
-  min-height: 172px;
-  padding: 14px 16px;
+  min-height: 80px;
+  padding: 12px;
   box-sizing: border-box;
   resize: vertical;
-  border: 1px solid rgba(38, 58, 84, 0.16);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
-  color: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.sourceDraftInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .sourceDraftHint {
-  margin: 12px 0 0;
-  color: #5d6a7f;
-  font-size: 0.88rem;
-  font-weight: 700;
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 0.8rem;
 }
 
 .configStatusBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .configStatusBadge-ready {
-  background: rgba(72, 142, 92, 0.14);
-  color: #2f6b3f;
+  background: #def7ec;
+  color: #166534;
 }
 
 .configStatusBadge-needs_configuration,
 .configStatusBadge-browser_mock {
-  background: rgba(206, 146, 18, 0.16);
-  color: #8a5700;
+  background: #fdf6b2;
+  color: #9f580a;
 }
 
 .configStatusBadge-invalid_config,
 .configStatusBadge-unsupported_provider {
-  background: rgba(173, 53, 39, 0.14);
-  color: #8d2f24;
+  background: #fde8e8;
+  color: #9b1c1c;
 }
 
 .configDetails {
   margin: 0;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .configDetails div {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
 }
 
 .configDetails dt {
-  color: #6f7d91;
-  font-size: 0.78rem;
-  font-weight: 700;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  min-width: 80px;
 }
 
 .configDetails dd {
   margin: 0;
-  color: #1b2d45;
-  overflow-wrap: anywhere;
-}
-
-.configDetails-path dd {
-  font-size: 0.88rem;
+  color: #1f2937;
+  font-size: 0.85rem;
+  word-break: break-all;
 }
 
 .conversationTimeline {
@@ -275,84 +301,120 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .messageCard {
-  padding: 16px 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(16, 40, 68, 0.08);
-  background: rgba(255, 255, 255, 0.7);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
 }
 
 .messageRole-assistant {
-  background: rgba(224, 239, 250, 0.92);
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  align-self: flex-start;
+  max-width: 90%;
+  border-bottom-left-radius: 0;
 }
 
 .messageRole-engineer {
-  background: rgba(255, 243, 221, 0.92);
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  align-self: flex-end;
+  max-width: 90%;
+  border-bottom-right-radius: 0;
 }
 
 .messageRole-system {
-  background: rgba(244, 239, 231, 0.92);
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  align-self: center;
+  text-align: center;
+  max-width: 80%;
+  font-size: 0.85rem;
+  color: #4b5563;
 }
 
 .messageMeta {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 10px;
-}
-
-.messageBadge,
-.messageIntentLabel {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .messageBadge {
-  background: rgba(15, 27, 45, 0.08);
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.messageRole-assistant .messageBadge {
+  background: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.messageRole-engineer .messageBadge {
+  background: #bbf7d0;
+  color: #14532d;
 }
 
 .messageIntentLabel {
-  color: #8a4f00;
-  background: rgba(255, 194, 87, 0.22);
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9f580a;
+  background: #fdf6b2;
 }
 
 .messageContent {
   margin: 0;
   white-space: pre-wrap;
+  color: #1f2937;
+  font-size: 0.95rem;
 }
 
 .composerPanel {
-  padding: 18px 24px 24px;
-  border-top: 1px solid rgba(15, 27, 45, 0.08);
-  background: rgba(249, 246, 241, 0.88);
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  flex-shrink: 0;
 }
 
 .composerLabel,
 .controlLabel {
   display: block;
-  margin-bottom: 10px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #41526a;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
 }
 
 .composerInput {
   width: 100%;
-  min-height: 112px;
-  padding: 16px;
+  min-height: 80px;
+  padding: 12px;
   box-sizing: border-box;
   resize: vertical;
-  border: 1px solid rgba(38, 58, 84, 0.16);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  color: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.composerInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .composerActions,
@@ -360,117 +422,127 @@ button {
 .zoomRow,
 .toggleRow {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
 }
 
 .composerActions {
-  margin-top: 14px;
+  margin-top: 12px;
+  justify-content: flex-end;
 }
 
 .composerHint {
-  margin: 12px 0 0;
-  font-size: 0.88rem;
-  color: #5d6a7f;
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  flex-grow: 1;
 }
 
 .primaryButton,
 .secondaryButton,
 .ghostButton,
 .segment {
-  border: 0;
-  border-radius: 14px;
-  padding: 11px 16px;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease,
-    background-color 0.18s ease;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #214f86 0%, #2c6cb2 100%);
-  color: #f8fbff;
-  box-shadow: 0 14px 28px rgba(33, 79, 134, 0.22);
+  background-color: #2563eb;
+  color: #ffffff;
 }
 
 .secondaryButton {
-  background: #eadfca;
-  color: #4f3510;
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
 .ghostButton {
-  background: rgba(12, 27, 48, 0.08);
-  color: #203753;
+  background-color: transparent;
+  color: #4b5563;
 }
 
-.primaryButton:hover,
-.secondaryButton:hover,
-.ghostButton:hover,
-.segment:hover {
-  transform: translateY(-1px);
+.primaryButton:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.ghostButton:hover:not(:disabled) {
+  background-color: #f3f4f6;
 }
 
 .primaryButton:disabled,
 .secondaryButton:disabled,
 .ghostButton:disabled,
 .segment:disabled {
-  opacity: 0.55;
-  transform: none;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .annotationLegend,
 .previewControls,
 .validationPanel {
-  margin: 0 24px 16px;
+  margin: 0 20px 16px;
+  flex-shrink: 0;
 }
 
 .annotationLegend {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+  padding: 12px 0 0;
 }
 
 .legendPill {
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .legendPill-addition {
-  background: #d9edff;
-  color: #0a4f89;
+  background: #dbebff;
+  color: #1e40af;
 }
 
 .legendPill-rewrite {
-  background: #ffe7a7;
-  color: #8a5700;
+  background: #fef08a;
+  color: #854d0e;
 }
 
 .previewControls {
-  display: grid;
-  gap: 14px;
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(15, 27, 45, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
 }
 
 .validationPanel {
-  padding: 16px 18px;
-  border-radius: 20px;
-  border: 1px solid rgba(15, 27, 45, 0.08);
-  background: rgba(255, 255, 255, 0.72);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
 }
 
 .validationPanel-ok {
-  background: rgba(233, 245, 237, 0.88);
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
 .validationPanel-warning {
-  background: rgba(255, 244, 224, 0.88);
+  background: #fffbeb;
+  border-color: #fef08a;
 }
 
 .validationHeader {
@@ -478,55 +550,55 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .validationBadge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .validationBadge-ok {
-  background: rgba(72, 142, 92, 0.14);
-  color: #2f6b3f;
+  background: #dcfce7;
+  color: #166534;
 }
 
 .validationBadge-warning {
-  background: rgba(206, 146, 18, 0.16);
-  color: #8a5700;
+  background: #fef9c3;
+  color: #854d0e;
 }
 
 .validationCount {
-  font-size: 0.86rem;
-  color: #41526a;
-  font-weight: 700;
+  font-size: 0.85rem;
+  color: #4b5563;
+  font-weight: 600;
 }
 
 .validationDescription {
-  margin: 10px 0 0;
-  color: #41526a;
+  margin: 8px 0 0;
+  color: #4b5563;
+  font-size: 0.85rem;
 }
 
 .validationList {
-  margin: 12px 0 0;
-  padding-left: 18px;
-  color: #5a4930;
+  margin: 8px 0 0;
+  padding-left: 16px;
+  font-size: 0.85rem;
 }
 
 .validationItem + .validationItem {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .validationItem-error {
-  color: #7c2a22;
+  color: #991b1b;
 }
 
 .validationItem-warning {
-  color: #7b5600;
+  color: #92400e;
 }
 
 .controlGroup-inline {
@@ -539,44 +611,50 @@ button {
 
 .segmentedControl {
   display: inline-flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 2px;
 }
 
 .segment {
-  background: rgba(32, 55, 83, 0.08);
-  color: #203753;
+  background: transparent;
+  color: #4b5563;
+  padding: 6px 12px;
+  font-size: 0.85rem;
 }
 
 .segment.active {
-  background: #203753;
-  color: #fff7ed;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .toggleControl {
-  display: inline-flex;
+  display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: #374151;
 }
 
 .zoomValue {
-  min-width: 4.2rem;
+  min-width: 48px;
   text-align: center;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #374151;
 }
 
 .previewDocument {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  max-width: 100%;
 }
 
 .previewSection {
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(15, 27, 45, 0.08);
+  padding: 20px;
+  background: #ffffff;
 }
 
 .previewSectionHeader {
@@ -585,20 +663,27 @@ button {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
 }
 
 .previewSectionHeader h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  color: #111827;
 }
 
 .previewSectionMeta {
-  font-size: 0.8rem;
-  color: #62728a;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .previewSectionBody {
-  color: #1a2c44;
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .previewSectionText {
@@ -607,97 +692,90 @@ button {
 }
 
 .inlineAnnotation {
-  padding: 0 0.2em;
-  border-radius: 0.35em;
-  font-weight: 700;
+  padding: 0 4px;
+  border-radius: 4px;
 }
 
 .inlineAnnotation-addition {
-  background: #d9edff;
-  color: #0a4f89;
+  background: #dbebff;
+  color: #1e3a8a;
 }
 
 .inlineAnnotation-rewrite {
-  background: #ffe7a7;
-  color: #8a5700;
+  background: #fef08a;
+  color: #713f12;
 }
 
 .annotationNotes {
-  margin: 14px 0 0;
-  padding: 0;
+  margin: 12px 0 0;
+  padding: 12px;
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 0.88rem;
-  color: #41526a;
+  font-size: 0.85rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #d1d5db;
 }
 
 .annotationNotes li {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
+  color: #4b5563;
 }
 
 .annotationDot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex: 0 0 auto;
+  margin-top: 5px;
 }
 
 .annotationDot-addition {
-  background: #4593df;
+  background: #3b82f6;
 }
 
 .annotationDot-rewrite {
-  background: #d29a28;
+  background: #eab308;
 }
 
 .feedbackCard,
 .emptyState,
 .previewEmpty {
-  margin: 0;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #34465f;
-}
-
-.feedbackCard {
-  margin: 0 24px 24px;
+  margin: 0 20px 20px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #4b5563;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 .feedbackError {
-  background: rgba(255, 227, 223, 0.88);
-  color: #8d2f24;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
 .feedbackWarning {
-  background: rgba(255, 244, 224, 0.88);
-  color: #7b5600;
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fef08a;
 }
 
 @media (max-width: 1080px) {
+  .appShell {
+    overflow: auto;
+  }
   .workspaceGrid {
     grid-template-columns: 1fr;
-    min-height: auto;
+    overflow: visible;
   }
-
-  .supportGrid {
-    grid-template-columns: 1fr;
-  }
-
   .panel {
-    min-height: 540px;
-  }
-
-  .appHeader {
-    flex-direction: column;
-  }
-
-  .stackStatus {
-    justify-content: flex-start;
+    min-height: 600px;
   }
 }
 
@@ -705,7 +783,11 @@ button {
   .appShell {
     padding: 16px;
   }
-
+  .appHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
   .panelHeader,
   .composerPanel,
   .timelineWrap,
@@ -715,20 +797,7 @@ button {
   .previewControls,
   .validationPanel,
   .feedbackCard {
-    margin-left: 16px;
-    margin-right: 16px;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .panelHeader,
-  .composerPanel {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .timelineWrap,
-  .previewWrap {
-    padding: 0 16px 16px;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
