@@ -31,7 +31,7 @@ export function ModelConfigPanel({
       <div className="supportCardHeader">
         <div>
           <p className="panelEyebrow">模型配置</p>
-          <h3>供应商 / 接口 / Key 校验</h3>
+          <h3>提供商 / 接口 / Key 校验</h3>
         </div>
         <span className={`configStatusBadge configStatusBadge-${statusName}`}>
           {status ? statusLabelMap[status.status] : "读取中"}

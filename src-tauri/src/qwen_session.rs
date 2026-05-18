@@ -92,25 +92,25 @@ struct AiDisclosurePayload {
 #[derive(Debug, Deserialize)]
 struct AiDisclosureSections {
     #[serde(default)]
-    title: String,
+    title: serde_json::Value,
     #[serde(default)]
-    field: String,
+    field: serde_json::Value,
     #[serde(default)]
-    background: String,
+    background: serde_json::Value,
     #[serde(default)]
-    purpose: String,
+    purpose: serde_json::Value,
     #[serde(default)]
-    technical_solution: String,
+    technical_solution: serde_json::Value,
     #[serde(default)]
-    benefits: String,
+    benefits: serde_json::Value,
     #[serde(default)]
-    figures: String,
+    figures: serde_json::Value,
     #[serde(default)]
-    implementation: String,
+    implementation: serde_json::Value,
     #[serde(default)]
-    layout: String,
+    layout: serde_json::Value,
     #[serde(default)]
-    questions: String,
+    questions: serde_json::Value,
 }
 
 struct GeneratedDisclosure {
@@ -883,16 +883,48 @@ fn advisory_actions() -> SessionActions {
 impl AiDisclosureSections {
     fn as_map(&self) -> BTreeMap<&'static str, String> {
         BTreeMap::from([
-            ("title", self.title.clone()),
-            ("field", self.field.clone()),
-            ("background", self.background.clone()),
-            ("purpose", self.purpose.clone()),
-            ("technical_solution", self.technical_solution.clone()),
-            ("benefits", self.benefits.clone()),
-            ("figures", self.figures.clone()),
-            ("implementation", self.implementation.clone()),
-            ("layout", self.layout.clone()),
-            ("questions", self.questions.clone()),
+            ("title", json_value_to_text(&self.title)),
+            ("field", json_value_to_text(&self.field)),
+            ("background", json_value_to_text(&self.background)),
+            ("purpose", json_value_to_text(&self.purpose)),
+            ("technical_solution", json_value_to_text(&self.technical_solution)),
+            ("benefits", json_value_to_text(&self.benefits)),
+            ("figures", json_value_to_text(&self.figures)),
+            ("implementation", json_value_to_text(&self.implementation)),
+            ("layout", json_value_to_text(&self.layout)),
+            ("questions", json_value_to_text(&self.questions)),
         ])
+    }
+}
+
+/// Convert any JSON value into a human-readable text string.
+///
+/// The AI model sometimes returns section content as arrays or objects instead
+/// of plain strings (e.g. `"figures": [{"name":"图1","desc":"..."},...]`).
+/// This function flattens any JSON structure into readable text so the preview
+/// never shows raw `[object Object]`.
+fn json_value_to_text(value: &serde_json::Value) -> String {
+    match value {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Array(arr) => {
+            arr.iter()
+                .map(|item| json_value_to_text(item))
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<_>>()
+                .join("\n")
+        }
+        serde_json::Value::Object(obj) => {
+            // Try to extract meaningful text from object values.
+            // Common patterns: {"name": "图1", "description": "..."} or
+            // {"step": "步骤1", "content": "..."}.
+            obj.values()
+                .map(|v| json_value_to_text(v))
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<_>>()
+                .join("；")
+        }
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::Bool(b) => b.to_string(),
+        serde_json::Value::Null => String::new(),
     }
 }

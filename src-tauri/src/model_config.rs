@@ -8,7 +8,7 @@ use crate::models::{ModelProviderStatus, ModelProviderStatusKind};
 
 pub const DEFAULT_QWEN_ENDPOINT: &str =
     "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
-pub const DEFAULT_QWEN_MODEL: &str = "qwen-plus";
+pub const DEFAULT_QWEN_MODEL: &str = "qwen3.6-plus";
 
 const DEFAULT_PROVIDER: &str = "qwen";
 const CONFIG_FILE_NAME: &str = "model-provider.json";
