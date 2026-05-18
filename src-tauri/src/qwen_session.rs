@@ -44,7 +44,7 @@ struct QwenChatRequest<'a> {
     model: &'a str,
     messages: Vec<QwenMessage<'a>>,
     temperature: f32,
-    max_tokens: u16,
+    max_tokens: u32,
 }
 
 #[derive(Serialize)]
@@ -259,8 +259,8 @@ impl QwenClient {
                     content: user_prompt.to_string(),
                 },
             ],
-            temperature: 0.4,
-            max_tokens: 2800,
+            temperature: 0.3,
+            max_tokens: 49152,
         };
 
         let response = self
@@ -430,30 +430,34 @@ fn build_live_session(
 fn build_system_prompt() -> String {
     r#"你是一位资深专利工程师与专利代理人协作专家。你的任务是把工程师草稿和补充回答，整理为符合 PatentScribe AI V1 结构约束的技术交底书。
 
-必须严格输出 JSON 对象，不得输出 Markdown 代码块、解释文字或额外前后缀。JSON 结构必须为：
+【输出格式 — 最高优先级】
+你的整个回复必须是且仅是一个合法 JSON 对象。禁止任何前缀、后缀、Markdown 代码块标记（如 ```json）、解释文字。第一个字符必须是 {，最后一个字符必须是 }。
+
+JSON 结构固定如下（10 个 sections 字段全部必填，不得遗漏任何一个）：
 {
-  "diagnosis_summary": "字符串",
-  "follow_up_question": "字符串，若无需继续追问则输出空字符串",
-  "completeness_advisory": "字符串，若仍需继续追问则输出空字符串",
+  "diagnosis_summary": "对当前草稿的整体诊断，2-4 句话",
+  "follow_up_question": "若仍需追问则填写一条可直接回复的问题，否则填空字符串",
+  "completeness_advisory": "若不再追问则填写完整度评语，否则填空字符串",
   "sections": {
-    "title": "一、发明名称 内容",
-    "field": "二、技术领域 内容",
-    "background": "三、背景技术及现有缺陷 内容",
-    "purpose": "四、发明目的 内容",
-    "technical_solution": "五、技术方案 内容",
-    "benefits": "六、有益效果 内容，必须是 Markdown 表格，表头固定为 | 维度 | 技术突破点 | 效果与价值体现 |",
-    "figures": "七、附图说明 内容",
-    "implementation": "八、具体实施方式 内容",
-    "layout": "专项输出，必须是 Markdown 表格，表头固定为 | 布局方向 | 保护策略 | 建议权利要求架构 |",
-    "questions": "专项输出，必须使用 Q1/Q2 问答式"
+    "title": "发明名称，一句话",
+    "field": "技术领域描述",
+    "background": "背景技术及现有缺陷",
+    "purpose": "发明目的",
+    "technical_solution": "技术方案，使用工程师口吻",
+    "benefits": "有益效果，必须是 Markdown 表格，表头固定为 | 维度 | 技术突破点 | 效果与价值体现 |",
+    "figures": "附图说明",
+    "implementation": "具体实施方式，尽量结合已有回答补全参数",
+    "layout": "专利挖掘与布局建议，必须是 Markdown 表格，表头固定为 | 布局方向 | 保护策略 | 建议权利要求架构 |",
+    "questions": "需工程师补齐的关键改进建议，必须使用 Q1/Q2 问答式"
   }
 }
 
 硬约束：
-- 信息缺失时只能写【待工程师补充】，不得虚构技术事实。
-- 第五部分“技术方案”使用工程师口吻，不要堆砌法律术语。
-- follow_up_question 和 completeness_advisory 只能二选一有内容；若仍需追问，follow_up_question 必须是可直接回复的单条问题。
-- 具体实施方式必须尽量结合已有回答补全参数、触发条件、控制逻辑。
+1. sections 中 10 个字段全部必须有实质内容（至少两句话），绝对不能为空字符串。
+2. 信息缺失时只能写【待工程师补充】，不得虚构技术事实。
+3. 第五部分"技术方案"使用工程师口吻，不要堆砌法律术语。
+4. follow_up_question 和 completeness_advisory 只能二选一有内容。
+5. 每个 section 内容要精练，避免冗长，确保总输出不超过 3500 tokens。
 "#.to_string()
 }
 
@@ -468,9 +472,15 @@ fn build_prompt(
         .filter(|history| !history.is_empty())
         .unwrap_or_else(|| "无历史问答。".to_string());
 
-    let current_disclosure = previous
-        .map(|session| format_disclosure(&session.disclosure))
-        .unwrap_or_else(|| "无上一版交底书。".to_string());
+    // On retries, omit the full disclosure to shorten the prompt and reduce
+    // the chance of hitting the token limit on the response.
+    let current_disclosure = if attempt > 1 {
+        "（省略上一版全文以节省空间，请基于你已知的上下文重新生成完整 10 个 sections）".to_string()
+    } else {
+        previous
+            .map(|session| format_disclosure(&session.disclosure))
+            .unwrap_or_else(|| "无上一版交底书。".to_string())
+    };
 
     let latest_turn = match turn {
         Some(UserTurn::Answer(answer)) => format!("本轮工程师补充：{}", answer),
@@ -482,7 +492,12 @@ fn build_prompt(
 
     let retry_guidance = if attempt > 1 {
         format!(
-            "这是第 {} 次生成尝试。请重点修正上一次输出中的结构问题，确保 8 个固定章节和 2 个专项输出全部出现，且表格与 Q1/Q2 格式正确。",
+            "⚠️ 这是第 {} 次生成尝试。上一次输出存在结构问题（可能是 JSON 不完整、sections 字段为空、或缺少表格/Q 格式）。请务必：\n\
+             1. 输出必须是完整合法的 JSON\n\
+             2. sections 全部 10 个字段都必须有内容\n\
+             3. benefits 和 layout 必须包含指定表头的 Markdown 表格\n\
+             4. questions 必须使用 Q1/Q2 格式\n\
+             5. 每段内容精练，总输出控制在 3000 tokens 以内",
             attempt
         )
     } else {
@@ -531,17 +546,48 @@ fn disclosure_from_payload(
     payload: &AiDisclosurePayload,
 ) -> DisclosureDocument {
     let section_values = payload.sections.as_map();
+
+    // Build a lookup of previous section content so we can fall back to it
+    // when the AI returns an empty string for a section (commonly caused by
+    // token-limit truncation or formatting instability).
+    let previous_content: std::collections::BTreeMap<&str, &str> = previous
+        .map(|session| {
+            session
+                .disclosure
+                .sections
+                .iter()
+                .map(|s| (s.id.as_str(), s.content.as_str()))
+                .collect()
+        })
+        .unwrap_or_default();
+
     let sections = SECTION_DEFINITIONS
         .iter()
-        .map(|(id, title)| DisclosureSection {
-            id: (*id).to_string(),
-            title: (*title).to_string(),
-            content: section_values
+        .map(|(id, title)| {
+            let ai_content = section_values
                 .get(*id)
                 .cloned()
-                .unwrap_or_default()
-                .trim()
-                .to_string(),
+                .unwrap_or_default();
+            let trimmed = ai_content.trim();
+
+            // If the AI returned an empty section but we had content before,
+            // preserve the previous version so the preview never regresses to
+            // showing only titles.
+            let final_content = if trimmed.is_empty() {
+                previous_content
+                    .get(*id)
+                    .copied()
+                    .unwrap_or_default()
+                    .to_string()
+            } else {
+                trimmed.to_string()
+            };
+
+            DisclosureSection {
+                id: (*id).to_string(),
+                title: (*title).to_string(),
+                content: final_content,
+            }
         })
         .collect::<Vec<_>>();
 
@@ -636,20 +682,154 @@ fn snippet(content: &str) -> String {
 
 fn parse_ai_payload(content: &str) -> Result<AiDisclosurePayload, String> {
     let trimmed = content.trim();
-    let json_payload = if trimmed.starts_with('{') && trimmed.ends_with('}') {
-        trimmed.to_string()
-    } else {
-        let start = trimmed
-            .find('{')
-            .ok_or_else(|| format!("Qwen 返回内容不是 JSON：{}", trimmed))?;
-        let end = trimmed
-            .rfind('}')
-            .ok_or_else(|| format!("Qwen 返回内容不是 JSON：{}", trimmed))?;
-        trimmed[start..=end].to_string()
-    };
 
-    serde_json::from_str::<AiDisclosurePayload>(&json_payload)
-        .map_err(|error| format!("Qwen JSON 解析失败：{}；原始内容：{}", error, trimmed))
+    // Step 1: Strip markdown code fences that models frequently wrap around JSON.
+    let stripped = strip_markdown_code_block(trimmed);
+
+    // Step 2: Extract the outermost balanced JSON object using brace-depth
+    // matching. This is more reliable than the previous first-'{' / last-'}'
+    // approach which broke on trailing text or unbalanced content.
+    let json_payload = extract_balanced_json(&stripped)
+        .ok_or_else(|| {
+            let preview: String = trimmed.chars().take(200).collect();
+            format!("Qwen 返回内容中未找到完整的 JSON 对象：{}", preview)
+        })?;
+
+    // Step 3: Try to parse directly first.
+    if let Ok(payload) = serde_json::from_str::<AiDisclosurePayload>(&json_payload) {
+        return Ok(payload);
+    }
+
+    // Step 4: If direct parse fails, attempt to repair truncated JSON.
+    let repaired = attempt_json_repair(&json_payload);
+    serde_json::from_str::<AiDisclosurePayload>(&repaired)
+        .map_err(|error| {
+            let preview: String = trimmed.chars().take(200).collect();
+            format!("Qwen JSON 解析失败：{}；原始内容前200字符：{}", error, preview)
+        })
+}
+
+/// Strip markdown code block wrappers like ```json ... ``` or ``` ... ```
+fn strip_markdown_code_block(input: &str) -> String {
+    let trimmed = input.trim();
+
+    // Handle ```json\n...\n``` and ```\n...\n```
+    if trimmed.starts_with("```") {
+        let without_opening = if let Some(rest) = trimmed.strip_prefix("```json") {
+            rest
+        } else if let Some(rest) = trimmed.strip_prefix("```JSON") {
+            rest
+        } else {
+            trimmed.strip_prefix("```").unwrap_or(trimmed)
+        };
+
+        let body = without_opening
+            .trim_start_matches(|c: char| c == '\n' || c == '\r');
+
+        // Remove trailing ``` if present
+        let body = if body.trim_end().ends_with("```") {
+            let end = body.rfind("```").unwrap_or(body.len());
+            &body[..end]
+        } else {
+            body
+        };
+
+        return body.trim().to_string();
+    }
+
+    trimmed.to_string()
+}
+
+/// Extract the outermost balanced JSON object by tracking brace depth.
+/// Handles strings (skipping braces inside quotes) for correctness.
+fn extract_balanced_json(input: &str) -> Option<String> {
+    let bytes = input.as_bytes();
+    let start = input.find('{')?;
+    let mut depth = 0i32;
+    let mut in_string = false;
+    let mut escape_next = false;
+
+    for i in start..bytes.len() {
+        let ch = bytes[i];
+
+        if escape_next {
+            escape_next = false;
+            continue;
+        }
+
+        if ch == b'\\' && in_string {
+            escape_next = true;
+            continue;
+        }
+
+        if ch == b'"' {
+            in_string = !in_string;
+            continue;
+        }
+
+        if in_string {
+            continue;
+        }
+
+        if ch == b'{' {
+            depth += 1;
+        } else if ch == b'}' {
+            depth -= 1;
+            if depth == 0 {
+                return Some(input[start..=i].to_string());
+            }
+        }
+    }
+
+    // If we never balanced, return everything from first '{' to end
+    // so the repair step can try to fix it.
+    if depth > 0 {
+        return Some(input[start..].to_string());
+    }
+
+    None
+}
+
+/// Attempt to repair truncated JSON by appending missing closing braces.
+fn attempt_json_repair(json: &str) -> String {
+    let mut repaired = json.trim_end().to_string();
+
+    // Remove trailing comma that may precede a missing brace
+    if repaired.ends_with(',') {
+        repaired.pop();
+    }
+
+    // Add an empty string value if the JSON ends with a key colon
+    let trimmed_end = repaired.trim_end();
+    if trimmed_end.ends_with(':') || trimmed_end.ends_with(": ") {
+        repaired.push_str("\"\"");
+    }
+
+    // Close any unclosed strings
+    let quote_count = repaired.chars().filter(|c| *c == '"').count()
+        - repaired.matches("\\\"").count();
+    if quote_count % 2 != 0 {
+        repaired.push('"');
+    }
+
+    // Count unbalanced braces and close them
+    let mut depth = 0i32;
+    let mut in_str = false;
+    let mut esc = false;
+    for ch in repaired.chars() {
+        if esc { esc = false; continue; }
+        if ch == '\\' && in_str { esc = true; continue; }
+        if ch == '"' { in_str = !in_str; continue; }
+        if in_str { continue; }
+        if ch == '{' { depth += 1; }
+        if ch == '}' { depth -= 1; }
+    }
+
+    for _ in 0..depth {
+        repaired.push('}');
+    }
+
+    repaired
 }
 
 fn sanitized_optional(value: Option<String>) -> Option<String> {
